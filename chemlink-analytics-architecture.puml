@@ -1,0 +1,329 @@
+@startuml chemlink-analytics-architecture
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontSize 11
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+title ChemLink Analytics Dashboard V2 - Solution Architecture
+footer Data Engineering Pipeline: Extract → Stage → Transform → Aggregate → Visualize/Analyze
+
+' Production Databases (Read-Only)
+package "Production Environment\n(Read-Only Access)" as prod {
+    database "chemlink-service-prd" as db1 {
+        collections persons [
+            **persons**
+            ----
+            id (chemlink_id)
+            email
+            profile data
+        ]
+        collections experiences [
+            **experiences**
+            professional history
+        ]
+        collections education [
+            **education**
+            academic records
+        ]
+        collections companies [
+            **companies**
+            organization data
+        ]
+    }
+    
+    database "engagement-platform-prd" as db2 {
+        collections users [
+            **users**
+            ----
+            id (engagement_id)
+            email
+            created_at
+        ]
+        collections posts [
+            **posts**
+            content & metadata
+        ]
+        collections comments [
+            **comments**
+            post interactions
+        ]
+        collections votes [
+            **votes**
+            engagement signals
+        ]
+        collections collections_tbl [
+            **collections**
+            saved content
+        ]
+        collections view_access [
+            **view_access**
+            profile views
+        ]
+    }
+}
+
+' ETL Scripts
+package "ETL Pipeline\n(Nightly Execution)" as etl {
+    component "extract.py" as extract {
+    }
+    note right of extract
+        **extract.py**
+        ----
+        • Reads from production DBs
+        • Full table refresh
+        • Runs: 2:00 AM daily
+        • Output: Raw staging data
+    end note
+    
+    component "transform.py" as transform {
+    }
+    note right of transform
+        **transform.py**
+        ----
+        • Unifies user IDs via email
+        • Removes test/deleted users
+        • Creates unified_users
+        • Deduplicates data
+        • Output: Clean core schema
+    end note
+    
+    component "aggregate.py" as aggregate {
+    }
+    note right of aggregate
+        **aggregate.py**
+        ----
+        • Pre-calculates metrics
+        • 9 aggregate tables
+        • Optimized for dashboard
+        • Output: Ready-to-viz data
+    end note
+}
+
+' Local Analytics Database
+package "Local Analytics Database\n(PostgreSQL localhost:5432)" as analytics {
+    database "chemlink_analytics" as analytics_db {
+        
+        package "staging schema\n(21,585 rows)" as staging {
+            collections staging_persons [
+                **staging_persons**
+                4,226 rows
+            ]
+            collections staging_users [
+                **staging_users**
+                10,124 rows
+            ]
+            collections staging_posts [
+                **staging_posts**
+                4,156 rows
+            ]
+            collections staging_comments [
+                **staging_comments**
+                812 rows
+            ]
+            collections staging_votes [
+                **staging_votes**
+                1,421 rows
+            ]
+            collections staging_other [
+                **+ 6 more tables**
+                (experiences, education,
+                companies, collections,
+                view_access, etc.)
+            ]
+        }
+        
+        package "core schema\n(6,336 rows)" as core {
+            collections unified_users [
+                **unified_users**
+                ----
+                chemlink_id (PRIMARY)
+                engagement_id
+                email (UNIQUE)
+                ----
+                2,113 rows
+                Links both DBs
+            ]
+            collections user_activity_events [
+                **user_activity_events**
+                ----
+                All user actions
+                with timestamps
+                ----
+                4,223 rows
+            ]
+        }
+        
+        package "aggregates schema\n(2,347 rows)" as aggregates {
+            collections daily_metrics [
+                **daily_metrics**
+                348 rows
+            ]
+            collections monthly_metrics [
+                **monthly_metrics**
+                124 rows
+            ]
+            collections cohort_retention [
+                **cohort_retention**
+                186 rows
+            ]
+            collections post_metrics [
+                **post_metrics**
+                523 rows
+            ]
+            collections finder_metrics [
+                **finder_metrics**
+                412 rows
+            ]
+            collections collection_metrics [
+                **collection_metrics**
+                289 rows
+            ]
+            collections profile_metrics [
+                **profile_metrics**
+                198 rows
+            ]
+            collections funnel_metrics [
+                **funnel_metrics**
+                156 rows
+            ]
+            collections engagement_levels [
+                **user_engagement_levels**
+                111 rows
+            ]
+        }
+        
+        package "ai schema\n(Future ML Training)" as ai {
+            collections user_features [
+                **user_features**
+                ----
+                ML-ready feature vectors
+                • Engagement scores
+                • Activity patterns
+                • Temporal features
+                ----
+                Status: Planned
+            ]
+            collections model_splits [
+                **model_splits**
+                ----
+                Train/validation/test splits
+                ----
+                Status: Planned
+            ]
+            collections predictions [
+                **predictions**
+                ----
+                Model outputs
+                • Churn risk
+                • Engagement forecast
+                • User segmentation
+                ----
+                Status: Planned
+            ]
+        }
+    }
+}
+
+' Dashboard Application
+package "Dashboard Application\n(Flask Web Server)" as dashboard {
+    component "app.py" as flask {
+    }
+    note right of flask
+        **app.py (Flask)**
+        ----
+        • Port 5001 (background)
+        • 20 API endpoints
+        • Chart.js visualizations
+        • <2s load time
+        • Info & SQL modals
+    end note
+    
+    component "20 Interactive Charts" as charts {
+    }
+    note right of charts
+        **20 Charts**
+        ----
+        Engagement, retention,
+        funnels, cohorts,
+        post metrics, finder usage,
+        profile views, collections
+    end note
+}
+
+' Data Flow Arrows
+db1 -down-> extract : "Read\nperiodically"
+db2 -down-> extract : "Read\nperiodically"
+
+extract -down-> staging : "Full\nrefresh"
+staging -down-> transform : "Process\nraw data"
+transform -down-> core : "Unified\nclean data"
+core -down-> aggregate : "Calculate\nmetrics"
+aggregate -down-> aggregates : "Pre-computed\naggregates"
+
+aggregates -down-> flask : "Query\n(fast)"
+core -down-> flask : "Query\n(when needed)"
+core -down-> ai : "Future:\nML training"
+aggregates -down-> ai : "Future:\nFeature eng"
+
+flask -down-> charts : "Render\nJSON data"
+
+' Key Linking Mechanism
+note right of unified_users
+  **Data Linking Key**
+  ==================
+  • Email joins both DBs
+  • chemlink_id = root ID
+  • engagement_id = secondary
+  • Removes test accounts
+  • Deduplicates users
+end note
+
+' ETL Schedule
+note left of extract
+  **Nightly Schedule**
+  ================
+  extract.py:   2:00 AM
+  transform.py: 2:15 AM
+  aggregate.py: 2:30 AM
+  
+  Total runtime: ~8 minutes
+end note
+
+' AI Future Vision
+note bottom of ai
+  **AI Schema (Future)**
+  ===================
+  Planned Use Cases:
+  • Churn prediction (7-day)
+  • Engagement forecasting
+  • User segmentation
+  • Content recommendations
+  
+  Blockers:
+  • Need more data history
+  • ML use case definition
+  • Session tracking required
+end note
+
+legend right
+  **Architecture Overview**
+  ========================
+  **Production DBs**: 2 databases (chemlink-service, engagement-platform)
+  **ETL Pipeline**: 3 scripts (extract, transform, aggregate)
+  **Local Analytics DB**: 4 schemas (staging, core, aggregates, ai)
+  **Dashboard**: Flask app with 20 Chart.js visualizations
+  
+  **Data Quality Improvements in V2**:
+  ✅ Unified user IDs (email-based linking)
+  ✅ Test account removal
+  ✅ Metric consistency (votes + comments)
+  ✅ Type validation & NULL handling
+  ✅ Pre-aggregated for performance
+  ✅ Comprehensive error handling
+  
+  **Version**: V2 (Local Analytics DB Architecture)
+  **Last Updated**: 2025
+endlegend
+
+@enduml
