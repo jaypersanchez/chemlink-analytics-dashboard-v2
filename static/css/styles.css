@@ -1,0 +1,699 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #333;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+header {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+    font-size: 2.5em;
+    color: #667eea;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    color: #666;
+    font-size: 1.1em;
+}
+
+/* Summary Cards */
+.summary-section {
+    margin-bottom: 30px;
+}
+
+.summary-section h2 {
+    color: white;
+    margin-bottom: 15px;
+    font-size: 1.8em;
+}
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card h3 {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card .value {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #667eea;
+}
+
+/* Metrics Sections */
+.metrics-section {
+    margin-bottom: 40px;
+}
+
+.metrics-section h2 {
+    color: white;
+    margin-bottom: 20px;
+    font-size: 1.8em;
+}
+
+.chart-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.chart-container {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.chart-container.full-width {
+    grid-column: 1 / -1;
+}
+
+.chart-container h3 {
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 1.2em;
+    border-bottom: 2px solid #667eea;
+    padding-bottom: 10px;
+}
+
+canvas {
+    max-height: 300px;
+}
+
+/* Table Styles */
+.table-container {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    background: #667eea;
+    color: white;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9em;
+    letter-spacing: 0.5px;
+}
+
+tbody tr:hover {
+    background: #f5f5f5;
+}
+
+td.loading {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+    font-style: italic;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 30px;
+    color: white;
+    font-size: 0.9em;
+}
+
+/* Loading State */
+.loading {
+    color: #999;
+    font-style: italic;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .chart-row {
+        grid-template-columns: 1fr;
+    }
+    
+    header h1 {
+        font-size: 1.8em;
+    }
+    
+    .cards-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    
+    body {
+        padding: 10px;
+    }
+}
+
+/* Custom Chart Colors */
+.chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9em;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+.status-badge.power-user {
+    background: #667eea;
+    color: white;
+}
+
+.status-badge.active-user {
+    background: #48bb78;
+    color: white;
+}
+
+.status-badge.regular-user {
+    background: #ed8936;
+    color: white;
+}
+
+.status-badge.casual-user {
+    background: #cbd5e0;
+    color: #2d3748;
+}
+
+/* Category Headers */
+.category-header {
+    margin-bottom: 25px;
+}
+
+.category-header h2 {
+    color: white;
+    font-size: 2em;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.category-description {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.1em;
+    font-style: italic;
+    margin-left: 40px;
+}
+
+/* Pain Point Badges */
+.pain-point {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffe9a6 100%);
+    border-left: 4px solid #ffc107;
+    padding: 12px 15px;
+    margin: 10px 0 15px 0;
+    border-radius: 6px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.pain-point:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transform: translateX(5px);
+}
+
+.pain-icon {
+    font-size: 1.3em;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.pain-text {
+    color: #856404;
+    font-size: 0.95em;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+/* Category-specific styling */
+.category-growth .chart-container {
+    border-top: 4px solid #667eea;
+}
+
+.category-engagement .chart-container {
+    border-top: 4px solid #48bb78;
+}
+
+.category-profile .chart-container {
+    border-top: 4px solid #ed8936;
+}
+
+.category-funnel .chart-container {
+    border-top: 4px solid #f56565;
+}
+
+/* Section visual separation */
+.metrics-section {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 30px;
+    border-radius: 15px;
+    margin-bottom: 40px;
+    backdrop-filter: blur(10px);
+}
+
+/* Chart Tooltips */
+.chart-container {
+    position: relative;
+}
+
+.info-icon {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 1.5em;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.info-icon:hover {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+.chart-tooltip {
+    position: absolute;
+    top: 50px;
+    right: 15px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 2px solid #667eea;
+    border-radius: 12px;
+    padding: 20px;
+    min-width: 350px;
+    max-width: 450px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.chart-container:hover .chart-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.tooltip-title {
+    color: #667eea;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin: 0 0 15px 0;
+    padding-bottom: 10px;
+    border-bottom: 3px solid #667eea;
+    text-align: center;
+}
+
+.chart-tooltip h4 {
+    color: #333;
+    font-size: 1em;
+    margin: 15px 0 8px 0;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.chart-tooltip h4:first-child {
+    margin-top: 0;
+}
+
+.chart-tooltip p {
+    color: #555;
+    font-size: 0.9em;
+    line-height: 1.6;
+    margin: 0 0 10px 0;
+}
+
+.chart-tooltip code {
+    background: #f1f3f5;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.85em;
+    color: #667eea;
+    display: block;
+    margin-top: 5px;
+    word-break: break-all;
+}
+
+/* Responsive tooltip positioning */
+@media (max-width: 768px) {
+    .chart-tooltip {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        min-width: 90vw;
+        max-width: 90vw;
+    }
+    
+    .chart-container:hover .chart-tooltip {
+        transform: translate(-50%, -50%);
+    }
+}
+
+/* SQL Button */
+.sql-button {
+    position: absolute;
+    top: 15px;
+    right: 50px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.sql-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+/* SQL Modal */
+.sql-modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+
+.sql-modal-content {
+    background: white;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.sql-modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 15px 15px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sql-modal-header h2 {
+    margin: 0;
+    font-size: 1.5em;
+    color: white;
+}
+
+.sql-modal-close {
+    font-size: 2em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.sql-modal-close:hover {
+    transform: scale(1.2);
+}
+
+.sql-modal-body {
+    padding: 30px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.sql-database {
+    background: #e7f3ff;
+    border-left: 4px solid #667eea;
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    color: #333;
+}
+
+.sql-modal-body pre {
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    overflow-x: auto;
+    margin: 0;
+}
+
+.sql-modal-body code {
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.95em;
+    line-height: 1.6;
+    color: #333;
+    display: block;
+}
+
+.sql-modal-footer {
+    padding: 20px 30px;
+    border-top: 1px solid #ddd;
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+}
+
+.copy-sql-btn, .close-btn {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.copy-sql-btn {
+    background: #667eea;
+    color: white;
+}
+
+.copy-sql-btn:hover {
+    background: #764ba2;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.close-btn {
+    background: #e0e0e0;
+    color: #333;
+}
+
+.close-btn:hover {
+    background: #d0d0d0;
+}
+
+/* Info Modal */
+.info-modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+
+.info-modal-content {
+    background: white;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 700px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.3s ease;
+}
+
+.info-modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 15px 15px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.info-modal-header h2 {
+    margin: 0;
+    font-size: 1.5em;
+    color: white;
+}
+
+.info-modal-body {
+    padding: 30px;
+    overflow-y: auto;
+}
+
+.info-modal-body h3 {
+    color: #667eea;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+
+.info-modal-body h3:first-child {
+    margin-top: 0;
+}
+
+.info-modal-body p {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.info-modal-body code {
+    background: #f1f3f5;
+    padding: 10px 15px;
+    border-radius: 6px;
+    display: block;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.9em;
+    color: #667eea;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.info-close-btn {
+    font-size: 2em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
+    color: white;
+}
+
+.info-close-btn:hover {
+    transform: scale(1.2);
+}
+
+/* ============================================================================
+   HIDDEN ELEMENTS - Can be unhidden later by removing these rules
+   ============================================================================ */
+
+/* Hide PII - Top Active Posters Chart */
+#activePostersChart {
+    display: none !important;
+}
+
+/* Hide the entire chart container for Top Active Posters */
+.chart-container[data-tooltip="active-posters"] {
+    display: none !important;
+}
+
+/* Hide PII - Top Performing Posts Table */
+.metrics-section.category-engagement section:has(#topPostsTable),
+section:has(#topPostsTable) {
+    display: none !important;
+}

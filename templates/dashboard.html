@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChemLink Analytics Dashboard V2</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ChemLink Analytics Dashboard V2</h1>
+            <p class="subtitle">Powered by Local Analytics Database - Fast & Optimized</p>
+            <div style="margin-top: 15px; padding: 10px; background: #e7f3ff; border-radius: 6px; border-left: 4px solid #667eea;">
+                <small style="color: #333;">
+                    <strong>🚀 What's New:</strong> All metrics are pre-calculated in the aggregates layer for instant loading. 
+                    Data refreshes nightly from production.
+                </small>
+            </div>
+        </header>
+
+        <!-- Summary Cards -->
+        <section class="summary-section">
+            <h2>Quick Stats</h2>
+            <div class="cards-grid" id="summaryCards">
+                <div class="card loading">Loading...</div>
+            </div>
+        </section>
+
+        <!-- Growth Metrics -->
+        <section class="metrics-section category-growth">
+            <div class="category-header">
+                <h2>📈 Growth Metrics</h2>
+                <p class="category-description">Track user acquisition and platform expansion</p>
+            </div>
+            
+            <div class="chart-row">
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('new_users_monthly')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('new_users_monthly')">💾 SQL</button>
+                    <h3>New Users - Monthly Trend</h3>
+                    <canvas id="newUsersMonthlyChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('growth_rate')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('growth_rate')">💾 SQL</button>
+                    <h3>User Growth Rate - Monthly</h3>
+                    <canvas id="growthRateChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-row">
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('dau')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('dau')">💾 SQL</button>
+                    <h3>Daily Active Users (DAU) - Last 30 Days</h3>
+                    <canvas id="dauChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('mau')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('mau')">💾 SQL</button>
+                    <h3>Monthly Active Users (MAU)</h3>
+                    <canvas id="mauChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-row">
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('new_users_weekly')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('new_users_weekly')">💾 SQL</button>
+                    <h3>New Users - Weekly Trend (Last 12 Weeks)</h3>
+                    <canvas id="newUsersWeeklyChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('active_users_weekly')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('active_users_weekly')">💾 SQL</button>
+                    <h3>Active Users - Weekly Trend (Last 12 Weeks)</h3>
+                    <canvas id="activeUsersWeeklyChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- User Engagement -->
+        <section class="metrics-section category-engagement">
+            <div class="category-header">
+                <h2>👥 User Engagement & Activity</h2>
+                <p class="category-description">Measure community interactions and platform activity</p>
+            </div>
+            
+            <div class="chart-row">
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('engagement_daily')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('engagement_daily')">💾 SQL</button>
+                    <h3>Daily Engagement - Last 30 Days</h3>
+                    <canvas id="engagementDailyChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('engagement_monthly')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('engagement_monthly')">💾 SQL</button>
+                    <h3>Monthly Engagement Activities</h3>
+                    <canvas id="engagementMonthlyChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-row">
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('user_segmentation')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('user_segmentation')">💾 SQL</button>
+                    <h3>User Segmentation by Engagement Level</h3>
+                    <canvas id="userSegmentationChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('mau_by_type')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('mau_by_type')">💾 SQL</button>
+                    <h3>Monthly Active Users by User Type</h3>
+                    <canvas id="mauByTypeChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Retention Analysis -->
+        <section class="metrics-section category-funnel">
+            <div class="category-header">
+                <h2>🔄 Cohort Retention Analysis</h2>
+                <p class="category-description">Track user retention and activation over time</p>
+            </div>
+            
+            <div class="chart-row">
+                <div class="chart-container full-width">
+                    <div class="info-icon" onclick="showInfoModal('retention_summary')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('retention_summary')">💾 SQL</button>
+                    <h3>Cohort Retention - 30/60/90 Day</h3>
+                    <canvas id="retentionSummaryChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-row">
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('activation_rate')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('activation_rate')">💾 SQL</button>
+                    <h3>Activation Rate by Cohort</h3>
+                    <canvas id="activationRateChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('power_users')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('power_users')">💾 SQL</button>
+                    <h3>Power Users & Active Contributors</h3>
+                    <canvas id="powerUsersChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Post/Engagement Metrics -->
+        <section class="metrics-section category-engagement">
+            <div class="category-header">
+                <h2>📝 Post & Content Analytics</h2>
+                <p class="category-description">Track post frequency and engagement rates</p>
+            </div>
+            
+            <div class="chart-row">
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('post_frequency')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('post_frequency')">💾 SQL</button>
+                    <h3>Post Frequency (Last 30 Days)</h3>
+                    <canvas id="postFrequencyChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('post_engagement')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('post_engagement')">💾 SQL</button>
+                    <h3>Post Engagement Rate</h3>
+                    <canvas id="postEngagementChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Finder & Collections -->
+        <section class="metrics-section category-profile">
+            <div class="category-header">
+                <h2>🔍 Finder & Collections Usage</h2>
+                <p class="category-description">Track finder searches and collection adoption</p>
+            </div>
+            
+            <div class="chart-row">
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('finder_searches')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('finder_searches')">💾 SQL</button>
+                    <h3>Finder Searches & Profile Views</h3>
+                    <canvas id="finderSearchesChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('collections')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('collections')">💾 SQL</button>
+                    <h3>Collections Created by Privacy Type</h3>
+                    <canvas id="collectionsChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Profile & Funnel -->
+        <section class="metrics-section category-funnel">
+            <div class="category-header">
+                <h2>👤 Profile Completion & Onboarding Funnel</h2>
+                <p class="category-description">Monitor profile quality and signup conversion</p>
+            </div>
+            
+            <div class="chart-row">
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('profile_completion')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('profile_completion')">💾 SQL</button>
+                    <h3>Profile Completion Breakdown</h3>
+                    <canvas id="profileCompletionChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('account_funnel')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('account_funnel')">💾 SQL</button>
+                    <h3>Account Creation Funnel (Bar)</h3>
+                    <canvas id="accountFunnelChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-row">
+                <div class="chart-container full-width">
+                    <div class="info-icon" onclick="showInfoModal('account_funnel_pyramid')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('account_funnel_pyramid')">💾 SQL</button>
+                    <h3>Account Creation Funnel (Pyramid)</h3>
+                    <canvas id="accountFunnelPyramidChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>ChemLink Analytics Dashboard V2 - Powered by Pre-Calculated Aggregates | Data refreshed nightly</p>
+        </footer>
+    </div>
+
+    <!-- Info Modal -->
+    <div id="infoModal" class="info-modal">
+        <div class="info-modal-content">
+            <div class="info-modal-header">
+                <h2 id="infoModalTitle">Chart Information</h2>
+                <span class="info-close-btn" onclick="closeInfoModal()">&times;</span>
+            </div>
+            <div class="info-modal-body">
+                <h3>📊 What This Chart Shows</h3>
+                <p id="infoWhat"></p>
+                
+                <h3>🔍 How to Read It</h3>
+                <p id="infoHow"></p>
+                
+                <h3>⚠️ Business Pain Point</h3>
+                <p id="infoPain"></p>
+                
+                <h3>💾 Data Source</h3>
+                <code id="infoSource"></code>
+            </div>
+        </div>
+    </div>
+
+    <!-- SQL Modal -->
+    <div id="sqlModal" class="sql-modal">
+        <div class="sql-modal-content">
+            <div class="sql-modal-header">
+                <h2 id="sqlModalTitle">SQL Query</h2>
+                <span class="sql-modal-close" onclick="closeSQLModal()">&times;</span>
+            </div>
+            <div class="sql-modal-body">
+                <div class="sql-database" id="sqlDatabase"></div>
+                <pre><code id="sqlQueryCode"></code></pre>
+            </div>
+            <div class="sql-modal-footer">
+                <button class="copy-sql-btn" onclick="copySQLToClipboard()">📋 Copy SQL</button>
+                <button class="close-btn" onclick="closeSQLModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/sql-modal.js') }}"></script>
+    <script>
+        // Initialize all charts on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSummaryCards();
+            loadNewUsersMonthlyChart();
+            loadGrowthRateChart();
+            loadDAUChart();
+            loadMAUChart();
+            loadEngagementDailyChart();
+            loadEngagementMonthlyChart();
+            loadUserSegmentationChart();
+            loadMAUByTypeChart();
+            loadRetentionSummaryChart();
+            loadActivationRateChart();
+            loadPowerUsersChart();
+            loadPostFrequencyChart();
+            loadPostEngagementChart();
+            loadFinderSearchesChart();
+            loadCollectionsChart();
+            loadProfileCompletionChart();
+            loadAccountFunnelChart();
+            loadAccountFunnelPyramidChart();
+            loadNewUsersWeeklyChart();
+            loadActiveUsersWeeklyChart();
+        });
+    </script>
+</body>
+</html>
