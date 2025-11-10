@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChemLink Graph Analytics - Network Intelligence</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .graph-section {
+            margin-bottom: 50px;
+            padding: 25px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .graph-section h2 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .data-table th {
+            background: #f7f9fc;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #ddd;
+        }
+        .data-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+        }
+        .data-table tr:hover {
+            background: #f9fafb;
+        }
+        .score-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .score-high { background: #d4edda; color: #155724; }
+        .score-medium { background: #fff3cd; color: #856404; }
+        .score-low { background: #f8d7da; color: #721c24; }
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        .nav-tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 3px solid transparent;
+        }
+        .nav-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        .chart-row {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .chart-row > div {
+            flex: 1;
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🕸️ ChemLink Graph Analytics</h1>
+            <p class="subtitle">Network Intelligence from Neo4j - Connection Recommendations, Company Networks, Skills Matching & More</p>
+            <div style="margin-top: 15px;">
+                <a href="/" style="color: #667eea; text-decoration: none; font-weight: 500;">← Back to Main Dashboard</a>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showSection('connections')">Connection Recommendations</button>
+            <button class="nav-tab" onclick="showSection('companies')">Company Networks</button>
+            <button class="nav-tab" onclick="showSection('skills')">Skills Matching</button>
+            <button class="nav-tab" onclick="showSection('careers')">Career Paths</button>
+            <button class="nav-tab" onclick="showSection('locations')">Location Networks</button>
+            <button class="nav-tab" onclick="showSection('alumni')">Alumni Networks</button>
+            <button class="nav-tab" onclick="showSection('projects')">Project Collaborations</button>
+        </div>
+
+        <!-- Connection Recommendations Section -->
+        <div id="connections-section" class="graph-section">
+            <h2>🤝 Connection Recommendations - "People You Should Know"</h2>
+            <p style="color: #666; margin-bottom: 20px;">Top recommended connections based on shared companies, schools, and professional networks.</p>
+            <div class="chart-row">
+                <div style="flex: 1; max-width: 600px;">
+                    <h3 style="font-size: 16px; margin-bottom: 15px;">Recommendation Score Distribution</h3>
+                    <canvas id="connectionsChart"></canvas>
+                </div>
+                <div style="flex: 1;">
+                    <h3 style="font-size: 16px; margin-bottom: 15px;">Top Connection Reasons</h3>
+                    <canvas id="connectionsReasonsChart"></canvas>
+                </div>
+            </div>
+            <div id="connections-data" class="loading-spinner">Loading detailed data...</div>
+        </div>
+
+        <!-- Company Network Section -->
+        <div id="companies-section" class="graph-section" style="display:none;">
+            <h2>🏢 Company Network Map</h2>
+            <p style="color: #666; margin-bottom: 20px;">Companies connected through shared employees, showing talent flow and network strength.</p>
+            <div class="chart-row">
+                <div style="flex: 1;">
+                    <h3 style="font-size: 16px; margin-bottom: 15px;">Top Company Connections (by Shared Employees)</h3>
+                    <canvas id="companiesChart"></canvas>
+                </div>
+            </div>
+            <div id="companies-data" class="loading-spinner">Loading detailed data...</div>
+        </div>
+
+        <!-- Skills Matching Section -->
+        <div id="skills-section" class="graph-section" style="display:none;">
+            <h2>🎯 Skills Matching Scores</h2>
+            <p style="color: #666; margin-bottom: 20px;">User proficiency scores by role and experience, with similar user cohorts.</p>
+            <div class="chart-row">
+                <div style="flex: 1;">
+                    <h3 style="font-size: 16px; margin-bottom: 15px;">Top Roles by Average Proficiency Score</h3>
+                    <canvas id="skillsChart"></canvas>
+                </div>
+                <div style="flex: 1;">
+                    <h3 style="font-size: 16px; margin-bottom: 15px;">Proficiency Distribution</h3>
+                    <canvas id="skillsDistChart"></canvas>
+                </div>
+            </div>
+            <div id="skills-data" class="loading-spinner">Loading detailed data...</div>
+        </div>
+
+        <!-- Career Paths Section -->
+        <div id="careers-section" class="graph-section" style="display:none;">
+            <h2>📈 Career Path Patterns</h2>
+            <p style="color: #666; margin-bottom: 20px;">Common career progressions and role sequences at the same company.</p>
+            <div class="chart-row">
+                <div style="flex: 1;">
+                    <h3 style="font-size: 16px; margin-bottom: 15px;">Most Common Career Paths (by User Count)</h3>
+                    <canvas id="careersChart"></canvas>
+                </div>
+            </div>
+            <div id="careers-data" class="loading-spinner">Loading detailed data...</div>
+        </div>
+
+        <!-- Location Networks Section -->
+        <div id="locations-section" class="graph-section" style="display:none;">
+            <h2>🌍 Location-Based Professional Networks</h2>
+            <p style="color: #666; margin-bottom: 20px;">Professional communities by geography with diversity metrics.</p>
+            <div class="chart-row">
+                <div style="flex: 1;">
+                    <h3 style="font-size: 16px; margin-bottom: 15px;">User Count by Country</h3>
+                    <canvas id="locationsChart"></canvas>
+                </div>
+                <div style="flex: 1;">
+                    <h3 style="font-size: 16px; margin-bottom: 15px;">Company Diversity by Location</h3>
+                    <canvas id="locationsDiversityChart"></canvas>
+                </div>
+            </div>
+            <div id="locations-data" class="loading-spinner">Loading detailed data...</div>
+        </div>
+
+        <!-- Alumni Networks Section -->
+        <div id="alumni-section" class="graph-section" style="display:none;">
+            <h2>🎓 Alumni Networks</h2>
+            <p style="color: #666; margin-bottom: 20px;">School-based networks showing where alumni are currently working.</p>
+            <div id="alumni-data" class="loading-spinner">Loading alumni networks...</div>
+        </div>
+
+        <!-- Project Collaborations Section -->
+        <div id="projects-section" class="graph-section" style="display:none;">
+            <h2>🚀 Project Collaboration Networks</h2>
+            <p style="color: #666; margin-bottom: 20px;">Teams and collaboration patterns across projects.</p>
+            <div id="projects-data" class="loading-spinner">Loading project collaborations...</div>
+        </div>
+    </div>
+
+    <script>
+        // Section navigation
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.graph-section').forEach(el => el.style.display = 'none');
+            // Remove active class from all tabs
+            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+            
+            // Show selected section
+            document.getElementById(section + '-section').style.display = 'block';
+            // Activate corresponding tab
+            event.target.classList.add('active');
+            
+            // Load data if not already loaded
+            loadData(section);
+        }
+
+        // Data loading functions
+        let loadedSections = {};
+
+        function loadData(section) {
+            if (loadedSections[section]) return; // Already loaded
+            
+            switch(section) {
+                case 'connections':
+                    loadConnectionRecommendations();
+                    break;
+                case 'companies':
+                    loadCompanyNetworks();
+                    break;
+                case 'skills':
+                    loadSkillsMatching();
+                    break;
+                case 'careers':
+                    loadCareerPaths();
+                    break;
+                case 'locations':
+                    loadLocationNetworks();
+                    break;
+                case 'alumni':
+                    loadAlumniNetworks();
+                    break;
+                case 'projects':
+                    loadProjectCollaborations();
+                    break;
+            }
+            loadedSections[section] = true;
+        }
+
+        // Connection Recommendations
+        function loadConnectionRecommendations() {
+            fetch('/api/graph/connection-recommendations')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        document.getElementById('connections-data').innerHTML = '<p>No connection recommendations available.</p>';
+                        return;
+                    }
+                    
+                    // Chart 1: Score Distribution (Histogram)
+                    const scoreBuckets = {'>80': 0, '60-80': 0, '40-60': 0, '20-40': 0, '<20': 0};
+                    data.forEach(row => {
+                        const score = parseFloat(row.recommendation_score);
+                        if (score > 80) scoreBuckets['>80']++;
+                        else if (score > 60) scoreBuckets['60-80']++;
+                        else if (score > 40) scoreBuckets['40-60']++;
+                        else if (score > 20) scoreBuckets['20-40']++;
+                        else scoreBuckets['<20']++;
+                    });
+                    
+                    new Chart(document.getElementById('connectionsChart'), {
+                        type: 'bar',
+                        data: {
+                            labels: Object.keys(scoreBuckets),
+                            datasets: [{
+                                label: 'Number of Recommendations',
+                                data: Object.values(scoreBuckets),
+                                backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#6b7280']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { display: false } },
+                            scales: { y: { beginAtZero: true } }
+                        }
+                    });
+                    
+                    // Chart 2: Connection Reasons (Pie)
+                    const reasons = {};
+                    data.forEach(row => {
+                        reasons[row.recommendation_reason] = (reasons[row.recommendation_reason] || 0) + 1;
+                    });
+                    
+                    new Chart(document.getElementById('connectionsReasonsChart'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: Object.keys(reasons),
+                            datasets: [{
+                                data: Object.values(reasons),
+                                backgroundColor: ['#667eea', '#764ba2', '#f093fb']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { position: 'bottom' } }
+                        }
+                    });
+                    
+                    // Table
+                    let html = `<h3 style="margin-top: 30px; font-size: 16px;">Top 100 Recommendations</h3>
+                        <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>User ID</th>
+                                <th>Recommended User ID</th>
+                                <th>Score</th>
+                                <th>Reason</th>
+                                <th>Common Schools</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+                    
+                    data.slice(0, 100).forEach(row => {
+                        const scoreClass = row.recommendation_score > 80 ? 'score-high' : 
+                                          row.recommendation_score > 50 ? 'score-medium' : 'score-low';
+                        html += `<tr>
+                            <td>${row.user_id}</td>
+                            <td>${row.recommended_user_id}</td>
+                            <td><span class="score-badge ${scoreClass}">${row.recommendation_score}</span></td>
+                            <td>${row.recommendation_reason}</td>
+                            <td>${row.common_schools ? row.common_schools.length : 0}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    html += `<p style="margin-top: 20px; color: #999; font-size: 14px;">Showing top 100 of ${data.length.toLocaleString()} recommendations</p>`;
+                    document.getElementById('connections-data').innerHTML = html;
+                });
+        }
+
+        // Company Networks
+        function loadCompanyNetworks() {
+            fetch('/api/graph/company-network')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        document.getElementById('companies-data').innerHTML = '<p>No company network data available.</p>';
+                        return;
+                    }
+                    
+                    // Chart: Top 15 Company Connections
+                    const top15 = data.slice(0, 15);
+                    new Chart(document.getElementById('companiesChart'), {
+                        type: 'bar',
+                        data: {
+                            labels: top15.map(row => `${row.company_name_1} ↔ ${row.company_name_2}`.slice(0, 50)),
+                            datasets: [{
+                                label: 'Shared Employees',
+                                data: top15.map(row => row.shared_employee_count),
+                                backgroundColor: '#667eea'
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            plugins: { legend: { display: false } },
+                            scales: { x: { beginAtZero: true } }
+                        }
+                    });
+                    
+                    // Table
+                    let html = `<h3 style="margin-top: 30px; font-size: 16px;">All Company Connections</h3>
+                        <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Company 1</th>
+                                <th>Company 2</th>
+                                <th>Shared Employees</th>
+                                <th>Network Strength</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+                    
+                    data.forEach(row => {
+                        const strengthClass = row.network_strength_score > 10 ? 'score-high' : 
+                                             row.network_strength_score > 5 ? 'score-medium' : 'score-low';
+                        html += `<tr>
+                            <td>${row.company_name_1}</td>
+                            <td>${row.company_name_2}</td>
+                            <td>${row.shared_employee_count}</td>
+                            <td><span class="score-badge ${strengthClass}">${row.network_strength_score}</span></td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    html += `<p style="margin-top: 20px; color: #999; font-size: 14px;">Total: ${data.length.toLocaleString()} company connections</p>`;
+                    document.getElementById('companies-data').innerHTML = html;
+                });
+        }
+
+        // Skills Matching
+        function loadSkillsMatching() {
+            fetch('/api/graph/skills-matching')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        document.getElementById('skills-data').innerHTML = '<p>No skills matching data available.</p>';
+                        return;
+                    }
+                    
+                    // Chart 1: Top Roles by Avg Proficiency
+                    const roleScores = {};
+                    const roleCounts = {};
+                    data.forEach(row => {
+                        const role = row.role_title;
+                        const score = parseFloat(row.proficiency_score);
+                        roleScores[role] = (roleScores[role] || 0) + score;
+                        roleCounts[role] = (roleCounts[role] || 0) + 1;
+                    });
+                    
+                    const avgScores = Object.keys(roleScores).map(role => ({
+                        role,
+                        avgScore: roleScores[role] / roleCounts[role],
+                        count: roleCounts[role]
+                    })).sort((a, b) => b.avgScore - a.avgScore).slice(0, 15);
+                    
+                    new Chart(document.getElementById('skillsChart'), {
+                        type: 'bar',
+                        data: {
+                            labels: avgScores.map(r => r.role),
+                            datasets: [{
+                                label: 'Avg Proficiency Score',
+                                data: avgScores.map(r => r.avgScore),
+                                backgroundColor: '#10b981'
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            plugins: { legend: { display: false } },
+                            scales: { x: { beginAtZero: true } }
+                        }
+                    });
+                    
+                    // Chart 2: Proficiency Distribution
+                    const profBuckets = {'>900': 0, '700-900': 0, '500-700': 0, '300-500': 0, '<300': 0};
+                    data.forEach(row => {
+                        const score = parseFloat(row.proficiency_score);
+                        if (score > 900) profBuckets['>900']++;
+                        else if (score > 700) profBuckets['700-900']++;
+                        else if (score > 500) profBuckets['500-700']++;
+                        else if (score > 300) profBuckets['300-500']++;
+                        else profBuckets['<300']++;
+                    });
+                    
+                    new Chart(document.getElementById('skillsDistChart'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: Object.keys(profBuckets),
+                            datasets: [{
+                                data: Object.values(profBuckets),
+                                backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#6b7280']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { position: 'bottom' } }
+                        }
+                    });
+                    
+                    // Table
+                    let html = `<h3 style="margin-top: 30px; font-size: 16px;">Top 100 Skills Profiles</h3>
+                        <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>User ID</th>
+                                <th>Role</th>
+                                <th>Experience (Years)</th>
+                                <th>Proficiency Score</th>
+                                <th>Similar Users</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+                    
+                    data.slice(0, 100).forEach(row => {
+                        const scoreClass = row.proficiency_score > 700 ? 'score-high' : 
+                                          row.proficiency_score > 400 ? 'score-medium' : 'score-low';
+                        html += `<tr>
+                            <td>${row.user_id}</td>
+                            <td>${row.role_title}</td>
+                            <td>${row.experience_years || 0}</td>
+                            <td><span class="score-badge ${scoreClass}">${row.proficiency_score}</span></td>
+                            <td>${row.similar_user_count}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    html += `<p style="margin-top: 20px; color: #999; font-size: 14px;">Showing top 100 of ${data.length.toLocaleString()} skills profiles</p>`;
+                    document.getElementById('skills-data').innerHTML = html;
+                });
+        }
+
+        // Career Paths
+        function loadCareerPaths() {
+            fetch('/api/graph/career-paths')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        document.getElementById('careers-data').innerHTML = '<p>No career path data available.</p>';
+                        return;
+                    }
+                    
+                    // Chart: Top 20 Career Paths by User Count
+                    const top20 = data.slice(0, 20);
+                    new Chart(document.getElementById('careersChart'), {
+                        type: 'bar',
+                        data: {
+                            labels: top20.map(row => row.path_vector.slice(0, 60) + '...'),
+                            datasets: [{
+                                label: 'Number of Users',
+                                data: top20.map(row => row.user_count),
+                                backgroundColor: '#764ba2'
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            plugins: { legend: { display: false } },
+                            scales: { x: { beginAtZero: true } }
+                        }
+                    });
+                    
+                    // Table
+                    let html = `<h3 style="margin-top: 30px; font-size: 16px;">All Career Patterns</h3>
+                        <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Career Path</th>
+                                <th>User Count</th>
+                                <th>Avg Years Per Role</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+                    
+                    data.forEach(row => {
+                        const countClass = row.user_count > 5 ? 'score-high' : 
+                                          row.user_count > 2 ? 'score-medium' : 'score-low';
+                        html += `<tr>
+                            <td>${row.path_vector}</td>
+                            <td><span class="score-badge ${countClass}">${row.user_count}</span></td>
+                            <td>${row.avg_years_per_role || 'N/A'}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    html += `<p style="margin-top: 20px; color: #999; font-size: 14px;">Total: ${data.length.toLocaleString()} career patterns identified</p>`;
+                    document.getElementById('careers-data').innerHTML = html;
+                });
+        }
+
+        // Location Networks
+        function loadLocationNetworks() {
+            fetch('/api/graph/location-networks')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        document.getElementById('locations-data').innerHTML = '<p>No location network data available.</p>';
+                        return;
+                    }
+                    
+                    // Chart 1: User Count by Country
+                    const sorted = data.sort((a, b) => b.user_count - a.user_count).slice(0, 15);
+                    new Chart(document.getElementById('locationsChart'), {
+                        type: 'bar',
+                        data: {
+                            labels: sorted.map(row => row.country),
+                            datasets: [{
+                                label: 'User Count',
+                                data: sorted.map(row => row.user_count),
+                                backgroundColor: '#3b82f6'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { display: false } },
+                            scales: { y: { beginAtZero: true } }
+                        }
+                    });
+                    
+                    // Chart 2: Company Diversity by Location
+                    new Chart(document.getElementById('locationsDiversityChart'), {
+                        type: 'scatter',
+                        data: {
+                            datasets: [{
+                                label: 'Locations',
+                                data: data.map(row => ({
+                                    x: parseFloat(row.company_diversity_score) || 0,
+                                    y: parseFloat(row.role_diversity_score) || 0,
+                                    label: row.country
+                                })),
+                                backgroundColor: '#f59e0b'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: (context) => `${context.raw.label}: ${context.raw.x} companies, ${context.raw.y} roles`
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: { title: { display: true, text: 'Company Diversity' }, beginAtZero: true },
+                                y: { title: { display: true, text: 'Role Diversity' }, beginAtZero: true }
+                            }
+                        }
+                    });
+                    
+                    // Table
+                    let html = `<h3 style="margin-top: 30px; font-size: 16px;">All Location Networks</h3>
+                        <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Country</th>
+                                <th>User Count</th>
+                                <th>Company Diversity</th>
+                                <th>Role Diversity</th>
+                                <th>Top Companies</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+                    
+                    data.forEach(row => {
+                        const countClass = row.user_count > 100 ? 'score-high' : 
+                                          row.user_count > 50 ? 'score-medium' : 'score-low';
+                        html += `<tr>
+                            <td>${row.country}</td>
+                            <td><span class="score-badge ${countClass}">${row.user_count}</span></td>
+                            <td>${row.company_diversity_score || 0}</td>
+                            <td>${row.role_diversity_score || 0}</td>
+                            <td>${row.top_companies ? row.top_companies.slice(0, 3).join(', ') : 'N/A'}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    html += `<p style="margin-top: 20px; color: #999; font-size: 14px;">Total: ${data.length.toLocaleString()} location networks</p>`;
+                    document.getElementById('locations-data').innerHTML = html;
+                });
+        }
+
+        // Alumni Networks
+        function loadAlumniNetworks() {
+            fetch('/api/graph/alumni-networks')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        document.getElementById('alumni-data').innerHTML = '<p>No alumni network data available. (Education data extraction pending)</p>';
+                        return;
+                    }
+                    let html = `<table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>School</th>
+                                <th>Degree</th>
+                                <th>Alumni Count</th>
+                                <th>Grad Years</th>
+                                <th>Current Companies</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+                    
+                    data.forEach(row => {
+                        const countClass = row.alumni_count > 50 ? 'score-high' : 
+                                          row.alumni_count > 20 ? 'score-medium' : 'score-low';
+                        html += `<tr>
+                            <td>${row.school_name}</td>
+                            <td>${row.degree_name || 'N/A'}</td>
+                            <td><span class="score-badge ${countClass}">${row.alumni_count}</span></td>
+                            <td>${row.graduation_year_min} - ${row.graduation_year_max}</td>
+                            <td>${row.current_companies ? row.current_companies.slice(0, 3).join(', ') : 'N/A'}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    html += `<p style="margin-top: 20px; color: #999; font-size: 14px;">Total: ${data.length.toLocaleString()} alumni networks</p>`;
+                    document.getElementById('alumni-data').innerHTML = html;
+                });
+        }
+
+        // Project Collaborations
+        function loadProjectCollaborations() {
+            fetch('/api/graph/project-collaborations')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        document.getElementById('projects-data').innerHTML = '<p>No project collaboration data available.</p>';
+                        return;
+                    }
+                    let html = `<table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Project</th>
+                                <th>Company</th>
+                                <th>Team Size</th>
+                                <th>Collaboration Strength</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+                    
+                    data.forEach(row => {
+                        const sizeClass = row.user_count > 10 ? 'score-high' : 
+                                         row.user_count > 5 ? 'score-medium' : 'score-low';
+                        html += `<tr>
+                            <td>${row.project_name}</td>
+                            <td>${row.company_name || 'Unknown'}</td>
+                            <td><span class="score-badge ${sizeClass}">${row.user_count}</span></td>
+                            <td>${row.collaboration_strength}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                    html += `<p style="margin-top: 20px; color: #999; font-size: 14px;">Total: ${data.length.toLocaleString()} project teams</p>`;
+                    document.getElementById('projects-data').innerHTML = html;
+                });
+        }
+
+        // Load initial section on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            loadData('connections');
+        });
+    </script>
+</body>
+</html>

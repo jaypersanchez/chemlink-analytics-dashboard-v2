@@ -50,6 +50,11 @@ def dashboard():
     """Render main dashboard"""
     return render_template('dashboard.html')
 
+@app.route('/graph-analytics')
+def graph_analytics():
+    """Render Neo4j graph analytics dashboard"""
+    return render_template('graph-analytics.html')
+
 # ============================================================================
 # GROWTH METRICS - FROM AGGREGATES
 # ============================================================================
@@ -499,6 +504,191 @@ def active_users_weekly():
         GROUP BY DATE_TRUNC('week', metric_date)
         ORDER BY week DESC
         LIMIT 12;
+    """
+    return jsonify(execute_query(query))
+
+# ============================================================================
+# SQL QUERIES API - For SQL Modal Display
+# ============================================================================
+
+# ============================================================================
+# NEO4J GRAPH ANALYTICS - FROM AGGREGATES
+# ============================================================================
+
+@app.route('/api/graph/connection-recommendations')
+def graph_connection_recommendations():
+    """Get connection recommendations (People You Should Know)"""
+    query = """
+        SELECT 
+            user_id,
+            recommended_user_id,
+            recommendation_score,
+            common_companies,
+            common_roles,
+            common_schools,
+            recommendation_reason
+        FROM aggregates.connection_recommendations
+        ORDER BY recommendation_score DESC
+        LIMIT 500;
+    """
+    return jsonify(execute_query(query))
+
+@app.route('/api/graph/connection-recommendations/<int:user_id>')
+def graph_connection_recommendations_for_user(user_id):
+    """Get connection recommendations for specific user"""
+    query = f"""
+        SELECT 
+            user_id,
+            recommended_user_id,
+            recommendation_score,
+            common_companies,
+            common_roles,
+            common_schools,
+            recommendation_reason
+        FROM aggregates.connection_recommendations
+        WHERE user_id = {user_id}
+        ORDER BY recommendation_score DESC
+        LIMIT 50;
+    """
+    return jsonify(execute_query(query))
+
+@app.route('/api/graph/company-network')
+def graph_company_network():
+    """Get company network map showing connections between companies"""
+    query = """
+        SELECT 
+            company_id_1,
+            company_id_2,
+            company_name_1,
+            company_name_2,
+            shared_employee_count,
+            employee_ids,
+            network_strength_score
+        FROM aggregates.company_network_map
+        ORDER BY shared_employee_count DESC;
+    """
+    return jsonify(execute_query(query))
+
+@app.route('/api/graph/company-network/<company_name>')
+def graph_company_network_for_company(company_name):
+    """Get company network connections for specific company"""
+    query = f"""
+        SELECT 
+            company_id_1,
+            company_id_2,
+            company_name_1,
+            company_name_2,
+            shared_employee_count,
+            network_strength_score
+        FROM aggregates.company_network_map
+        WHERE company_name_1 ILIKE '%{company_name}%' 
+           OR company_name_2 ILIKE '%{company_name}%'
+        ORDER BY shared_employee_count DESC
+        LIMIT 100;
+    """
+    return jsonify(execute_query(query))
+
+@app.route('/api/graph/skills-matching')
+def graph_skills_matching():
+    """Get skills matching scores for all users and roles"""
+    query = """
+        SELECT 
+            user_id,
+            role_id,
+            role_title,
+            experience_years,
+            proficiency_score,
+            similar_user_count
+        FROM aggregates.skills_matching_scores
+        ORDER BY proficiency_score DESC
+        LIMIT 500;
+    """
+    return jsonify(execute_query(query))
+
+@app.route('/api/graph/skills-matching/<int:user_id>')
+def graph_skills_matching_for_user(user_id):
+    """Get skills matching scores for specific user"""
+    query = f"""
+        SELECT 
+            user_id,
+            role_id,
+            role_title,
+            experience_years,
+            proficiency_score,
+            similar_user_count
+        FROM aggregates.skills_matching_scores
+        WHERE user_id = {user_id}
+        ORDER BY proficiency_score DESC;
+    """
+    return jsonify(execute_query(query))
+
+@app.route('/api/graph/career-paths')
+def graph_career_paths():
+    """Get career path patterns showing common progressions"""
+    query = """
+        SELECT 
+            path_vector,
+            role_sequence,
+            user_count,
+            user_ids,
+            avg_years_per_role
+        FROM aggregates.career_path_patterns
+        ORDER BY user_count DESC;
+    """
+    return jsonify(execute_query(query))
+
+@app.route('/api/graph/location-networks')
+def graph_location_networks():
+    """Get location-based professional networks"""
+    query = """
+        SELECT 
+            location_id,
+            country,
+            user_count,
+            company_diversity_score,
+            role_diversity_score,
+            top_companies,
+            top_roles
+        FROM aggregates.location_based_networks
+        ORDER BY user_count DESC;
+    """
+    return jsonify(execute_query(query))
+
+@app.route('/api/graph/alumni-networks')
+def graph_alumni_networks():
+    """Get alumni networks by school and degree"""
+    query = """
+        SELECT 
+            school_id,
+            school_name,
+            degree_id,
+            degree_name,
+            alumni_count,
+            graduation_year_min,
+            graduation_year_max,
+            current_companies,
+            current_roles
+        FROM aggregates.alumni_networks
+        WHERE alumni_count > 0
+        ORDER BY alumni_count DESC;
+    """
+    return jsonify(execute_query(query))
+
+@app.route('/api/graph/project-collaborations')
+def graph_project_collaborations():
+    """Get project collaboration networks"""
+    query = """
+        SELECT 
+            project_id,
+            project_name,
+            company_id,
+            company_name,
+            user_count,
+            role_ids,
+            collaboration_strength
+        FROM aggregates.project_collaboration_graph
+        WHERE user_count > 0
+        ORDER BY user_count DESC;
     """
     return jsonify(execute_query(query))
 
