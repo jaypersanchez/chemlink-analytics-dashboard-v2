@@ -1,16 +1,17 @@
 # ChemLink Analytics Dashboard V2
 
-**Version 2 - Powered by Local Analytics Database**
+**Version 2 - Powered by Analytics Database (Localhost or Kubernetes)**
 
 ## What Changed from V1?
 
 | Feature | V1 (Old) | V2 (New) |
 |---------|----------|----------|
-| **Data Source** | 2 Production DBs (ChemLink + Engagement) | Local `chemlink_analytics` DB |
+| **Data Source** | 2 Production DBs (ChemLink + Engagement) | `chemlink_analytics` DB (localhost or Kubernetes) |
 | **Query Speed** | Slow (on-demand calculations) | Instant (pre-calculated) |
 | **Schemas Used** | Direct production tables | `aggregates` + `core` schemas |
 | **Risk** | Direct prod access | Zero prod impact |
 | **Data Freshness** | Real-time | Daily refresh (nightly ETL) |
+| **Deployment** | Local only | Local or Kubernetes |
 
 ## Architecture
 
@@ -22,11 +23,17 @@ Production DBs → ETL Extract → Staging → ETL Transform → Core → ETL Ag
 
 ## Quick Start
 
+### Localhost Mode (Default)
+
 ```bash
 # Install dependencies
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+
+# Configure for localhost
+cp .env.example .env
+# Edit .env if needed (defaults to localhost:5432)
 
 # Run dashboard
 python app.py
@@ -34,6 +41,18 @@ python app.py
 # Open browser
 open http://localhost:5001
 ```
+
+### Kubernetes Mode
+
+```bash
+# Switch to Kubernetes configuration
+./switch-to-kube.sh
+
+# Run dashboard (connects to Kubernetes via port-forward)
+python app.py
+```
+
+See [KUBERNETES_MIGRATION_GUIDE.md](KUBERNETES_MIGRATION_GUIDE.md) for complete migration instructions.
 
 ## API Endpoints
 

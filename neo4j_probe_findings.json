@@ -1,0 +1,272 @@
+{
+  "probe_timestamp": "2025-11-10T19:58:09.165663",
+  "database_uri": "neo4j+s://b4e5eaae.databases.neo4j.io",
+  "labels": [
+    "Location",
+    "Company",
+    "Role",
+    "Person",
+    "School",
+    "Degree",
+    "Experience",
+    "Education",
+    "Project",
+    "Language"
+  ],
+  "relationship_types": [
+    "LIVES_AT",
+    "WORKS_AT",
+    "WORKS_AS",
+    "EXPERIENCED_IN",
+    "WORKED_AS",
+    "WORKED_AT",
+    "EDUCATED_IN",
+    "STUDIED_AT",
+    "EARNED",
+    "LOCATED_IN",
+    "WORKED_ON",
+    "SPEAKS"
+  ],
+  "node_counts": {
+    "Experience": 10082,
+    "Role": 7626,
+    "Company": 4744,
+    "Education": 3298,
+    "Person": 2251,
+    "School": 2031,
+    "Project": 1605,
+    "Degree": 610,
+    "Language": 159,
+    "Location": 146
+  },
+  "relationship_counts": {
+    "EXPERIENCED_IN": 10082,
+    "WORKED_AT": 10080,
+    "WORKED_AS": 10072,
+    "LOCATED_IN": 3894,
+    "EDUCATED_IN": 3298,
+    "STUDIED_AT": 3294,
+    "EARNED": 3171,
+    "LIVES_AT": 2238,
+    "WORKED_ON": 2169,
+    "WORKS_AS": 2039,
+    "WORKS_AT": 2038,
+    "SPEAKS": 1095
+  },
+  "relationship_patterns": [
+    {
+      "from": "Person",
+      "relationship": "EXPERIENCED_IN",
+      "to": "Experience",
+      "count": 10082
+    },
+    {
+      "from": "Experience",
+      "relationship": "WORKED_AT",
+      "to": "Company",
+      "count": 10080
+    },
+    {
+      "from": "Experience",
+      "relationship": "WORKED_AS",
+      "to": "Role",
+      "count": 10072
+    },
+    {
+      "from": "Experience",
+      "relationship": "LOCATED_IN",
+      "to": "Location",
+      "count": 3894
+    },
+    {
+      "from": "Person",
+      "relationship": "EDUCATED_IN",
+      "to": "Education",
+      "count": 3298
+    },
+    {
+      "from": "Education",
+      "relationship": "STUDIED_AT",
+      "to": "School",
+      "count": 3294
+    },
+    {
+      "from": "Education",
+      "relationship": "EARNED",
+      "to": "Degree",
+      "count": 3171
+    },
+    {
+      "from": "Person",
+      "relationship": "LIVES_AT",
+      "to": "Location",
+      "count": 2238
+    },
+    {
+      "from": "Experience",
+      "relationship": "WORKED_ON",
+      "to": "Project",
+      "count": 2169
+    },
+    {
+      "from": "Person",
+      "relationship": "WORKS_AS",
+      "to": "Role",
+      "count": 2039
+    },
+    {
+      "from": "Person",
+      "relationship": "WORKS_AT",
+      "to": "Company",
+      "count": 2038
+    },
+    {
+      "from": "Person",
+      "relationship": "SPEAKS",
+      "to": "Language",
+      "count": 1095
+    }
+  ],
+  "node_properties": {
+    "Location": [
+      "country",
+      "location_id"
+    ],
+    "Company": [
+      "company_name",
+      "company_id"
+    ],
+    "Role": [
+      "title",
+      "role_id"
+    ],
+    "Person": [
+      "person_id",
+      "email",
+      "secondary_email",
+      "first_name",
+      "last_name",
+      "mobile_number",
+      "mobile_number_country_code"
+    ],
+    "School": [
+      "school_name",
+      "school_id"
+    ],
+    "Degree": [
+      "degree_name",
+      "degree_id"
+    ],
+    "Experience": [
+      "experience_id",
+      "start_date",
+      "end_date",
+      "type"
+    ],
+    "Education": [
+      "start_date",
+      "end_date",
+      "education_id",
+      "field_of_study"
+    ],
+    "Project": [
+      "project_name",
+      "project_id"
+    ],
+    "Language": [
+      "language_name",
+      "language_id"
+    ]
+  },
+  "relationship_properties": {},
+  "indexes": [],
+  "constraints": [],
+  "sample_data": {
+    "Location": [
+      {
+        "country": "zambia",
+        "location_id": 1
+      },
+      {
+        "country": "united kingdom",
+        "location_id": 2
+      },
+      {
+        "country": "uganda",
+        "location_id": 3
+      }
+    ],
+    "Company": [
+      {
+        "company_id": 1,
+        "company_name": "syriadev center"
+      },
+      {
+        "company_id": 2,
+        "company_name": "chemonics international"
+      },
+      {
+        "company_id": 3,
+        "company_name": "."
+      }
+    ],
+    "Role": [
+      {
+        "role_id": 1,
+        "title": "country program leader"
+      },
+      {
+        "role_id": 2,
+        "title": "operations manager"
+      },
+      {
+        "role_id": 3,
+        "title": "."
+      }
+    ],
+    "Person": [
+      {
+        "last_name": "simpungwe",
+        "mobile_number_country_code": 260,
+        "secondary_email": "gamasimp@gmail.com",
+        "mobile_number": 966591111,
+        "first_name": "gamariel",
+        "email": "gsimpungwe@ghsc-psm.org",
+        "person_id": 1
+      },
+      {
+        "last_name": "ojok",
+        "first_name": "michael",
+        "email": "mikeojok20@gmail.com",
+        "person_id": 3
+      },
+      {
+        "last_name": "alsayed ali",
+        "mobile_number_country_code": 352,
+        "secondary_email": "obaida.sayedali@gmail.com",
+        "mobile_number": 681115646,
+        "first_name": "obidah",
+        "email": "oalsayedali@injazinitiative.org",
+        "person_id": 4
+      }
+    ],
+    "School": [
+      {
+        "school_id": 1,
+        "school_name": "mersin \u00fcniversitesi / mersin university"
+      },
+      {
+        "school_id": 2,
+        "school_name": "university of california san diego"
+      },
+      {
+        "school_id": 3,
+        "school_name": "seton hall university"
+      }
+    ]
+  },
+  "orphaned_nodes": {
+    "Person": 1
+  },
+  "hub_nodes": []
+}
