@@ -16,10 +16,11 @@ CORS(app)
 # ============================================================================
 
 def get_db_connection():
-    """Connect to local analytics database"""
+    """Connect to analytics database (localhost or Kubernetes)"""
     return psycopg2.connect(
         host=os.getenv('ANALYTICS_DB_HOST', 'localhost'),
-        database='chemlink_analytics',
+        port=int(os.getenv('ANALYTICS_DB_PORT', '5432')),
+        database=os.getenv('ANALYTICS_DB_NAME', 'chemlink_analytics'),
         user=os.getenv('ANALYTICS_DB_USER', 'postgres'),
         password=os.getenv('ANALYTICS_DB_PASSWORD', 'postgres'),
         cursor_factory=psycopg2.extras.RealDictCursor
