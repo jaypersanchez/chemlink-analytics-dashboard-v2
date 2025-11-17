@@ -202,6 +202,59 @@
             </div>
         </section>
 
+        <!-- Authentication & Security -->
+        <section class="metrics-section category-security">
+            <div class="category-header">
+                <h2>🔐 Authentication & Security</h2>
+                <p class="category-description">Monitor login patterns, session activity, and security alerts</p>
+            </div>
+            
+            <div class="chart-row">
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('kratos_daily_logins')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('kratos_daily_logins')">💾 SQL</button>
+                    <h3>Daily Login Activity (Last 30 Days)</h3>
+                    <canvas id="kratosDailyLoginsChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('kratos_user_segments')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('kratos_user_segments')">💾 SQL</button>
+                    <h3>User Activity Segments (Recency)</h3>
+                    <canvas id="kratosUserSegmentsChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-row">
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('kratos_login_frequency')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('kratos_login_frequency')">💾 SQL</button>
+                    <h3>Login Frequency Distribution (30 Days)</h3>
+                    <canvas id="kratosLoginFrequencyChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('kratos_activation_funnel')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('kratos_activation_funnel')">💾 SQL</button>
+                    <h3>Signup to First Login (Activation)</h3>
+                    <canvas id="kratosActivationFunnelChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-row">
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('kratos_mfa_adoption')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('kratos_mfa_adoption')">💾 SQL</button>
+                    <h3>MFA Adoption Over Time</h3>
+                    <canvas id="kratosMfaAdoptionChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <div class="info-icon" onclick="showInfoModal('kratos_hourly_patterns')">ℹ️</div>
+                    <button class="sql-button" onclick="showSQLModal('kratos_hourly_patterns')">💾 SQL</button>
+                    <h3>Login Patterns by Hour of Day</h3>
+                    <canvas id="kratosHourlyPatternsChart"></canvas>
+                </div>
+            </div>
+        </section>
+
         <!-- Profile & Funnel -->
         <section class="metrics-section category-funnel">
             <div class="category-header">
@@ -306,6 +359,14 @@
             loadAccountFunnelPyramidChart();
             loadNewUsersWeeklyChart();
             loadActiveUsersWeeklyChart();
+            
+            // Kratos authentication charts
+            loadKratosDailyLoginsChart();
+            loadKratosUserSegmentsChart();
+            loadKratosLoginFrequencyChart();
+            loadKratosActivationFunnelChart();
+            loadKratosMfaAdoptionChart();
+            loadKratosHourlyPatternsChart();
         });
     </script>
 </body>

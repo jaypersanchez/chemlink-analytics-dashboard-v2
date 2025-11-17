@@ -694,6 +694,165 @@ def graph_project_collaborations():
     return jsonify(execute_query(query))
 
 # ============================================================================
+# KRATOS AUTHENTICATION & SECURITY ANALYTICS
+# ============================================================================
+
+@app.route('/api/kratos/daily-logins')
+def kratos_daily_logins():
+    """Get daily login activity metrics"""
+    query = """
+        SELECT 
+            metric_date,
+            unique_users_logged_in,
+            total_sessions,
+            mfa_sessions,
+            password_only_sessions,
+            mfa_session_rate,
+            avg_session_minutes,
+            mobile_users,
+            desktop_users
+        FROM aggregates.kratos_daily_logins
+        WHERE metric_date >= CURRENT_DATE - INTERVAL '30 days'
+        ORDER BY metric_date DESC;
+    """
+    return jsonify(execute_query(query))
+
+@app.route('/api/kratos/user-segments')
+def kratos_user_segments():
+    """Get user activity segmentation by recency"""
+    query = """
+        SELECT 
+            recency_segment,
+            COUNT(*) as user_count,
+            AVG(total_sessions) as avg_sessions
+        FROM aggregates.kratos_user_activity
+        GROUP BY recency_segment
+        ORDER BY 
+            CASE recency_segment
+                WHEN 'Active (< 7 days)' THEN 1
+                WHEN 'Recent (7-30 days)' THEN 2
+                WHEN 'At Risk (30-90 days)' THEN 3
+                ELSE 4
+            END;
+    """
+    return jsonify(execute_query(query))
+
+@app.route('/api/kratos/login-frequency')
+def kratos_login_frequency():
+    """Get login frequency distribution"""
+    query = """
+        SELECT 
+            frequency_segment,
+            user_count,
+            avg_logins,
+            avg_days_active,
+            avg_logins_per_active_day
+        FROM aggregates.kratos_login_frequency_segments
+        ORDER BY user_count DESC;
+    """
+    return jsonify(execute_query(query))
+
+@app.route('/api/kratos/mfa-adoption')
+def kratos_mfa_adoption():
+    """Get MFA adoption trends over time"""
+    query = """
+        SELECT 
+            metric_month,
+            totp_users,
+            webauthn_users,
+            password_only_users,
+            mfa_adoption_rate
+        FROM aggregates.kratos_mfa_adoption
+        ORDER BY metric_month DESC;
+    """
+    return jsonify(execute_query(query))
+
+@app.route('/api/kratos/activation-funnel')
+def kratos_activation_funnel():
+    """Get signup to first login activation funnel"""
+    query = """
+        SELECT 
+            signup_week,
+            new_identities,
+            activated_within_1_day,
+            activated_within_7_days,
+            activated_within_30_days,
+            day1_activation_rate,
+            week1_activation_rate,
+            month1_activation_rate,
+            avg_hours_to_first_login
+        FROM aggregates.kratos_activation_funnel
+        ORDER BY signup_week DESC;
+    """
+    return jsonify(execute_query(query))
+
+@app.route('/api/kratos/security-alerts')
+def kratos_security_alerts():
+    """Get security alerts for anomalous login patterns"""
+    query = """
+        SELECT 
+            identity_id,
+            risk_level,
+            session_count_7d,
+            unique_ips_7d,
+            active_days_7d,
+            flag_multiple_ips,
+            flag_high_volume
+        FROM aggregates.kratos_security_alerts
+        ORDER BY unique_ips_7d DESC, session_count_7d DESC
+        LIMIT 50;
+    """
+    return jsonify(execute_query(query))
+
+@app.route('/api/kratos/hourly-patterns')
+def kratos_hourly_patterns():
+    """Get login patterns by hour and day type"""
+    query = """
+        SELECT 
+            hour_of_day,
+            day_type,
+            SUM(total_sessions) as total_sessions,
+            SUM(unique_users) as unique_users,
+            AVG(avg_session_minutes) as avg_session_minutes
+        FROM aggregates.kratos_hourly_patterns
+        GROUP BY hour_of_day, day_type
+        ORDER BY hour_of_day;
+    """
+    return jsonify(execute_query(query))
+
+@app.route('/api/kratos/account-states')
+def kratos_account_states():
+    """Get account state distribution"""
+    query = """
+        SELECT 
+            state,
+            identity_count,
+            percentage,
+            new_in_last_30_days
+        FROM aggregates.kratos_account_states
+        ORDER BY identity_count DESC;
+    """
+    return jsonify(execute_query(query))
+
+@app.route('/api/kratos/summary-stats')
+def kratos_summary_stats():
+    """Get key Kratos metrics for summary cards"""
+    query = """
+        SELECT 
+            (SELECT COUNT(*) FROM aggregates.kratos_user_activity) as total_users,
+            (SELECT COUNT(*) FROM aggregates.kratos_user_activity 
+             WHERE recency_segment = 'Active (< 7 days)') as active_users_7d,
+            (SELECT COALESCE(SUM(unique_users_logged_in), 0) 
+             FROM aggregates.kratos_daily_logins 
+             WHERE metric_date >= CURRENT_DATE - INTERVAL '7 days') as total_logins_7d,
+            (SELECT COALESCE(AVG(mfa_session_rate), 0) 
+             FROM aggregates.kratos_daily_logins 
+             WHERE metric_date >= CURRENT_DATE - INTERVAL '30 days') as avg_mfa_rate,
+            (SELECT COUNT(*) FROM aggregates.kratos_security_alerts) as security_alerts_count;
+    """
+    return jsonify(execute_query(query))
+
+# ============================================================================
 # SQL QUERIES API - For SQL Modal Display
 # ============================================================================
 

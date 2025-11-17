@@ -538,3 +538,311 @@ async function loadActiveUsersWeeklyChart() {
         }
     });
 }
+
+// ============================================================================
+// KRATOS AUTHENTICATION & SECURITY CHARTS
+// ============================================================================
+
+async function loadKratosDailyLoginsChart() {
+    const data = await fetchData('kratos/daily-logins');
+    if (!data || data.length === 0) return;
+    
+    const ctx = document.getElementById('kratosDailyLoginsChart').getContext('2d');
+    const sortedData = [...data].reverse();
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: sortedData.map(d => formatDate(d.metric_date)),
+            datasets: [
+                {
+                    label: 'Unique Users',
+                    data: sortedData.map(d => d.unique_users_logged_in),
+                    borderColor: colors.primary,
+                    backgroundColor: colors.primary + '33',
+                    fill: true,
+                    tension: 0.3,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Total Sessions',
+                    data: sortedData.map(d => d.total_sessions),
+                    borderColor: colors.info,
+                    backgroundColor: colors.info + '33',
+                    fill: false,
+                    tension: 0.3,
+                    yAxisID: 'y'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                y: { 
+                    type: 'linear',
+                    position: 'left',
+                    beginAtZero: true,
+                    title: { display: true, text: 'Count' }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        afterLabel: function(context) {
+                            const index = context.dataIndex;
+                            const item = sortedData[index];
+                            return [
+                                `Avg Session: ${item.avg_session_minutes} min`,
+                                `MFA Rate: ${item.mfa_session_rate}%`
+                            ];
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+async function loadKratosUserSegmentsChart() {
+    const data = await fetchData('kratos/user-segments');
+    if (!data || data.length === 0) return;
+    
+    const ctx = document.getElementById('kratosUserSegmentsChart').getContext('2d');
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.map(d => d.recency_segment),
+            datasets: [{
+                label: 'User Count',
+                data: data.map(d => d.user_count),
+                backgroundColor: [colors.success, colors.info, colors.warning, colors.danger]
+            }]
+        },
+        options: {
+            responsive: true,
+            indexAxis: 'y',
+            plugins: { 
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        afterLabel: function(context) {
+                            const item = data[context.dataIndex];
+                            return `Avg Sessions: ${parseFloat(item.avg_sessions).toFixed(1)}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { beginAtZero: true, title: { display: true, text: 'Number of Users' } }
+            }
+        }
+    });
+}
+
+async function loadKratosLoginFrequencyChart() {
+    const data = await fetchData('kratos/login-frequency');
+    if (!data || data.length === 0) return;
+    
+    const ctx = document.getElementById('kratosLoginFrequencyChart').getContext('2d');
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: data.map(d => d.frequency_segment),
+            datasets: [{
+                data: data.map(d => d.user_count),
+                backgroundColor: [colors.danger, colors.warning, colors.info, colors.success, colors.primary]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { 
+                legend: { position: 'right' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const item = data[context.dataIndex];
+                            const total = data.reduce((sum, d) => sum + d.user_count, 0);
+                            const pct = ((item.user_count / total) * 100).toFixed(1);
+                            return [
+                                `${item.frequency_segment}: ${item.user_count} users (${pct}%)`,
+                                `Avg Logins: ${parseFloat(item.avg_logins).toFixed(1)}`,
+                                `Avg Days Active: ${parseFloat(item.avg_days_active).toFixed(1)}`
+                            ];
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+async function loadKratosActivationFunnelChart() {
+    const data = await fetchData('kratos/activation-funnel');
+    if (!data || data.length === 0) return;
+    
+    const ctx = document.getElementById('kratosActivationFunnelChart').getContext('2d');
+    const sortedData = [...data].reverse();
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: sortedData.map(d => formatDate(d.signup_week)),
+            datasets: [
+                {
+                    label: 'Day 1 Activation %',
+                    data: sortedData.map(d => parseFloat(d.day1_activation_rate) || 0),
+                    borderColor: colors.success,
+                    backgroundColor: colors.success + '33',
+                    fill: false,
+                    tension: 0.3
+                },
+                {
+                    label: 'Week 1 Activation %',
+                    data: sortedData.map(d => parseFloat(d.week1_activation_rate) || 0),
+                    borderColor: colors.primary,
+                    backgroundColor: colors.primary + '33',
+                    fill: false,
+                    tension: 0.3
+                },
+                {
+                    label: 'Month 1 Activation %',
+                    data: sortedData.map(d => parseFloat(d.month1_activation_rate) || 0),
+                    borderColor: colors.info,
+                    backgroundColor: colors.info + '33',
+                    fill: false,
+                    tension: 0.3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+                y: { 
+                    beginAtZero: true,
+                    max: 100,
+                    title: { display: true, text: 'Activation Rate (%)' },
+                    ticks: { callback: v => v + '%' }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
+                        },
+                        afterLabel: function(context) {
+                            const item = sortedData[context.dataIndex];
+                            return `New Signups: ${item.new_identities}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+async function loadKratosMfaAdoptionChart() {
+    const data = await fetchData('kratos/mfa-adoption');
+    if (!data || data.length === 0) return;
+    
+    const ctx = document.getElementById('kratosMfaAdoptionChart').getContext('2d');
+    const sortedData = [...data].reverse();
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: sortedData.map(d => formatMonth(d.metric_month)),
+            datasets: [
+                {
+                    label: 'TOTP Users',
+                    data: sortedData.map(d => d.totp_users),
+                    backgroundColor: colors.success
+                },
+                {
+                    label: 'WebAuthn Users',
+                    data: sortedData.map(d => d.webauthn_users),
+                    backgroundColor: colors.primary
+                },
+                {
+                    label: 'Password Only',
+                    data: sortedData.map(d => d.password_only_users),
+                    backgroundColor: colors.warning
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: { stacked: true },
+                y: { stacked: true, beginAtZero: true, title: { display: true, text: 'Number of Users' } }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        footer: function(tooltipItems) {
+                            const index = tooltipItems[0].dataIndex;
+                            const item = sortedData[index];
+                            return `MFA Adoption Rate: ${parseFloat(item.mfa_adoption_rate).toFixed(1)}%`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+async function loadKratosHourlyPatternsChart() {
+    const data = await fetchData('kratos/hourly-patterns');
+    if (!data || data.length === 0) return;
+    
+    const ctx = document.getElementById('kratosHourlyPatternsChart').getContext('2d');
+    
+    // Aggregate by hour across all days
+    const hourlyData = {};
+    data.forEach(item => {
+        const hour = item.hour_of_day;
+        if (!hourlyData[hour]) {
+            hourlyData[hour] = { sessions: 0, users: 0 };
+        }
+        hourlyData[hour].sessions += item.total_sessions;
+        hourlyData[hour].users += item.unique_users;
+    });
+    
+    const hours = Object.keys(hourlyData).sort((a, b) => a - b);
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: hours.map(h => `${h}:00`),
+            datasets: [
+                {
+                    label: 'Total Sessions',
+                    data: hours.map(h => hourlyData[h].sessions),
+                    backgroundColor: colors.primary + '99'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { 
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        afterLabel: function(context) {
+                            const hour = hours[context.dataIndex];
+                            return `Unique Users: ${hourlyData[hour].users}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { title: { display: true, text: 'Hour of Day' } },
+                y: { beginAtZero: true, title: { display: true, text: 'Number of Sessions' } }
+            }
+        }
+    });
+}
